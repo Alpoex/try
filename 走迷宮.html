@@ -1,0 +1,75 @@
+<h1>走迷宮小遊戲</h1>
+<py-script>
+    fall=[['O']*5 for i in range(5)]
+    fan=[['O','O','O','O','O'], ['O','A','A','A','O'], ['A','A','O','A','O'], ['O','O','O','A','A'], ['O','O','O','O','O']]
+    fall[2][0] = 'A'
+    fa = 2
+    fb = 0
+    i = 0
+    o = 0
+    print('歡迎大家來到迷宮')
+    print('A表示你的位置，O表示可走的路')
+    print('要注意在O之中有些是不能走的喔')
+    print('走錯就會回到起點')
+    while(i < 5):
+        while(o < 5):
+            print("%c"%fall[i][o],end=" ")
+            o = o + 1
+        o = 0
+        i = i + 1
+        print()
+    while(i != 1000):
+        i = 0
+        if(fa == 3 and fb == 4):
+            break
+        x=input("請輸入指令(w,s,d)")
+        if(x == "w"):
+            if(fall[fa][fb] == fan[fa-1][fb]):
+                c = fall[fa][fb]
+                fall[fa][fb] = fall[fa-1][fb]
+                fall[fa-1][fb] = c
+                fa = fa - 1
+            else:
+                print('走錯')
+                c=fall[fa][fb]
+                fall[fa][fb] = fall[2][0]
+                fall[2][0] = c
+                fa = 2
+                fb = 0
+        elif(x == "s"):
+            if(fall[fa][fb] == fan[fa+1][fb]):
+                c = fall[fa][fb]
+                fall[fa][fb] = fall[fa+1][fb]
+                fall[fa+1][fb] = c
+                fa = fa + 1
+            else:
+                print('走錯')
+                c = fall[fa][fb]
+                fall[fa][fb] = fall[2][0]
+                fall[2][0] = c
+                fa = 2
+                fb = 0
+        elif(x == "d"):
+            if(fall[fa][fb] == fan[fa][fb+1]):
+                c = fall[fa][fb]
+                fall[fa][fb] = fall[fa][fb+1]
+                fall[fa][fb+1] = c
+                fb = fb + 1
+            else:
+                print('走錯')
+                c = fall[fa][fb]
+                fall[fa][fb] = fall[2][0]
+                fall[2][0] = c
+                fa = 2
+                fb = 0
+        else:
+            print('輸入錯誤')
+        while(i < 5):
+            while(o < 5):
+                print("%c"%fall[i][o],end=" ")
+                o = o + 1
+            o = 0
+            i = i + 1
+            print()
+    print('恭喜你走到終點')
+</py-script>
