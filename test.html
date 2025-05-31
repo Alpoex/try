@@ -1,0 +1,701 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python 走迷宮遊戲框架</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 10px 10px 0 0;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px 20px;
+            background: #ecf0f1;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #7f8c8d;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .tab-button:hover {
+            background: #2980b9;
+            color: white;
+        }
+
+        .tab-content {
+            background: white;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            min-height: 600px;
+        }
+
+        .tab-panel {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .code-container {
+            background: #2c3e50;
+            color: #2ecc71;
+            padding: 25px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .control-panel {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+
+        .control-panel h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .input-group {
+            margin-top: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-row input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .input-row input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .hint {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .console {
+            background: #000;
+            color: #2ecc71;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            height: 400px;
+            overflow-y: auto;
+            border: 2px solid #2c3e50;
+        }
+
+        .console-line {
+            margin-bottom: 5px;
+            white-space: pre-wrap;
+        }
+
+        .cursor {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .waiting-message {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 60px 20px;
+            font-size: 1.1em;
+        }
+
+        .instructions {
+            margin-top: 30px;
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 5px solid #3498db;
+        }
+
+        .instructions h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .instructions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .instructions ul {
+            list-style: none;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .code-highlight {
+            background: #ecf0f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #2c3e50;
+        }
+
+        @media (max-width: 768px) {
+            .game-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .instructions-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <span>💻</span>
+                Python 走迷宮遊戲框架
+            </h1>
+            <p>展示和執行 Python 迷宮遊戲代碼</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('code')">Python 代碼</button>
+            <button class="tab-button" onclick="switchTab('game')">遊戲執行</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Code Tab -->
+            <div id="code-tab" class="tab-panel active">
+                <h3 style="color: #2c3e50; margin-bottom: 20px; font-size: 1.5em;">原始 Python 代碼</h3>
+                <p style="color: #7f8c8d; margin-bottom: 20px;">這是你的迷宮遊戲的完整 Python 代碼</p>
+                <div class="code-container">
+                    <pre id="python-code">fall=[['O']*5 for i in range(5)]
+fan=[['O','O','O','O','O'], ['O','A','A','A','O'], ['A','A','O','A','O'], ['O','O','O','A','A'], ['O','O','O','O','O']]
+fall[2][0] = 'A'
+fa = 2
+fb = 0
+i = 0
+o = 0
+print('歡迎大家來到迷宮')
+print('A表示你的位置，O表示可走的路')
+print('要注意在O之中有些是不能走的喔')
+print('走錯就會回到起點')
+while(i < 5):
+    while(o < 5):
+        print("%c"%fall[i][o],end=" ")
+        o = o + 1
+    o = 0
+    i = i + 1
+    print()
+while(i != 1000):
+    i = 0
+    if(fa == 3 and fb == 4):
+        break
+    x=input("請輸入指令(w,s,d)")
+    if(x == "w"):
+        if(fall[fa][fb] == fan[fa-1][fb]):
+            c = fall[fa][fb]
+            fall[fa][fb] = fall[fa-1][fb]
+            fall[fa-1][fb] = c
+            fa = fa - 1
+        else:
+            print('走錯')
+            c=fall[fa][fb]
+            fall[fa][fb] = fall[2][0]
+            fall[2][0] = c
+            fa = 2
+            fb = 0
+    elif(x == "s"):
+        if(fall[fa][fb] == fan[fa+1][fb]):
+            c = fall[fa][fb]
+            fall[fa][fb] = fall[fa+1][fb]
+            fall[fa+1][fb] = c
+            fa = fa + 1
+        else:
+            print('走錯')
+            c = fall[fa][fb]
+            fall[fa][fb] = fall[2][0]
+            fall[2][0] = c
+            fa = 2
+            fb = 0
+    elif(x == "d"):
+        if(fall[fa][fb] == fan[fa][fb+1]):
+            c = fall[fa][fb]
+            fall[fa][fb] = fall[fa][fb+1]
+            fall[fa][fb+1] = c
+            fb = fb + 1
+        else:
+            print('走錯')
+            c = fall[fa][fb]
+            fall[fa][fb] = fall[2][0]
+            fall[2][0] = c
+            fa = 2
+            fb = 0
+    else:
+        print('輸入錯誤')
+    while(i < 5):
+        while(o < 5):
+            print("%c"%fall[i][o],end=" ")
+            o = o + 1
+        o = 0
+        i = i + 1
+        print()
+print('恭喜你走到終點')</pre>
+                </div>
+            </div>
+
+            <!-- Game Tab -->
+            <div id="game-tab" class="tab-panel">
+                <div class="game-grid">
+                    <!-- Control Panel -->
+                    <div class="control-panel">
+                        <h3>🎮 遊戲控制</h3>
+                        <div class="button-group">
+                            <button class="btn btn-primary" onclick="runGame()" id="run-btn">
+                                ▶️ 執行遊戲
+                            </button>
+                            <button class="btn btn-secondary" onclick="resetGame()">
+                                🔄 重置
+                            </button>
+                        </div>
+
+                        <div class="input-group" id="input-section" style="display: none;">
+                            <label>請輸入指令(w,s,d):</label>
+                            <div class="input-row">
+                                <input type="text" id="user-input" placeholder="輸入 w, s, 或 d" maxlength="1">
+                                <button class="btn btn-primary" onclick="submitInput()">送出</button>
+                            </div>
+                            <div class="hint">提示: w=上, s=下, d=右</div>
+                        </div>
+
+                        <div class="waiting-message" id="waiting-message">
+                            點擊 "執行遊戲" 開始玩迷宮遊戲
+                        </div>
+                    </div>
+
+                    <!-- Console -->
+                    <div class="control-panel">
+                        <h3>🖥️ Python 輸出控制台</h3>
+                        <div class="console" id="console">
+                            <div class="console-line" style="color: #7f8c8d;">等待程式執行...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="instructions">
+                    <h4>📖 遊戲說明</h4>
+                    <div class="instructions-grid">
+                        <div>
+                            <h5 style="margin-bottom: 10px; color: #2c3e50;">控制說明:</h5>
+                            <ul>
+                                <li><span class="code-highlight">w</span> - 向上移動</li>
+                                <li><span class="code-highlight">s</span> - 向下移動</li>
+                                <li><span class="code-highlight">d</span> - 向右移動</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h5 style="margin-bottom: 10px; color: #2c3e50;">遊戲規則:</h5>
+                            <ul>
+                                <li><span class="code-highlight">A</span> - 你的位置</li>
+                                <li><span class="code-highlight">O</span> - 可走的路或牆壁</li>
+                                <li>走錯路會回到起點 (2,0)</li>
+                                <li>目標是到達位置 (3,4)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 遊戲狀態
+        let gameState = null;
+        let isRunning = false;
+        let waitingForInput = false;
+
+        // 切換標籤
+        function switchTab(tabName) {
+            // 隱藏所有標籤內容
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            
+            // 移除所有按鈕的active類
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // 顯示選中的標籤
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // 初始化遊戲狀態
+        function initializeGame() {
+            const fall = Array(5).fill(null).map(() => Array(5).fill('O'));
+            const fan = [
+                ['O','O','O','O','O'], 
+                ['O','A','A','A','O'], 
+                ['A','A','O','A','O'], 
+                ['O','O','O','A','A'], 
+                ['O','O','O','O','O']
+            ];
+            fall[2][0] = 'A';
+            
+            return {
+                fall: fall,
+                fan: fan,
+                fa: 2,
+                fb: 0,
+                gameWon: false
+            };
+        }
+
+        // 添加輸出到控制台
+        function addOutput(text) {
+            const console = document.getElementById('console');
+            const line = document.createElement('div');
+            line.className = 'console-line';
+            line.textContent = text;
+            console.appendChild(line);
+            console.scrollTop = console.scrollHeight;
+        }
+
+        // 清空控制台
+        function clearConsole() {
+            document.getElementById('console').innerHTML = '';
+        }
+
+        // 顯示迷宮
+        function displayMaze(maze) {
+            for (let i = 0; i < 5; i++) {
+                let row = '';
+                for (let o = 0; o < 5; o++) {
+                    row += maze[i][o] + ' ';
+                }
+                addOutput(row);
+            }
+        }
+
+        // 執行遊戲
+        function runGame() {
+            isRunning = true;
+            clearConsole();
+            gameState = initializeGame();
+            
+            document.getElementById('run-btn').disabled = true;
+            document.getElementById('waiting-message').style.display = 'none';
+            
+            addOutput('歡迎大家來到迷宮');
+            addOutput('A表示你的位置，O表示可走的路');
+            addOutput('要注意在O之中有些是不能走的喔');
+            addOutput('走錯就會回到起點');
+            addOutput('');
+            
+            displayMaze(gameState.fall);
+            addOutput('');
+            
+            showInputPrompt();
+        }
+
+        // 顯示輸入提示
+        function showInputPrompt() {
+            waitingForInput = true;
+            document.getElementById('input-section').style.display = 'block';
+            document.getElementById('user-input').focus();
+            
+            // 在控制台顯示輸入提示
+            const console = document.getElementById('console');
+            const promptLine = document.createElement('div');
+            promptLine.className = 'console-line';
+            promptLine.innerHTML = '請輸入指令(w,s,d): <span class="cursor">█</span>';
+            promptLine.id = 'input-prompt';
+            console.appendChild(promptLine);
+            console.scrollTop = console.scrollHeight;
+        }
+
+        // 隱藏輸入提示
+        function hideInputPrompt() {
+            waitingForInput = false;
+            document.getElementById('input-section').style.display = 'none';
+            const prompt = document.getElementById('input-prompt');
+            if (prompt) {
+                prompt.remove();
+            }
+        }
+
+        // 提交輸入
+        function submitInput() {
+            if (!gameState || !waitingForInput) return;
+            
+            const input = document.getElementById('user-input').value.toLowerCase();
+            document.getElementById('user-input').value = '';
+            
+            if (!input) return;
+            
+            addOutput('> ' + input);
+            hideInputPrompt();
+            
+            processMove(input);
+        }
+
+        // 處理移動
+        function processMove(x) {
+            const newState = {...gameState};
+            
+            // 檢查是否已經獲勝
+            if (newState.fa === 3 && newState.fb === 4) {
+                addOutput('恭喜你走到終點');
+                endGame();
+                return;
+            }
+            
+            if (x === 'w') {
+                if (newState.fa > 0 && newState.fall[newState.fa][newState.fb] === newState.fan[newState.fa - 1][newState.fb]) {
+                    // 有效移動
+                    const c = newState.fall[newState.fa][newState.fb];
+                    newState.fall[newState.fa][newState.fb] = newState.fall[newState.fa - 1][newState.fb];
+                    newState.fall[newState.fa - 1][newState.fb] = c;
+                    newState.fa = newState.fa - 1;
+                } else {
+                    addOutput('走錯');
+                    resetPlayerPosition(newState);
+                }
+            } else if (x === 's') {
+                if (newState.fa < 4 && newState.fall[newState.fa][newState.fb] === newState.fan[newState.fa + 1][newState.fb]) {
+                    // 有效移動
+                    const c = newState.fall[newState.fa][newState.fb];
+                    newState.fall[newState.fa][newState.fb] = newState.fall[newState.fa + 1][newState.fb];
+                    newState.fall[newState.fa + 1][newState.fb] = c;
+                    newState.fa = newState.fa + 1;
+                } else {
+                    addOutput('走錯');
+                    resetPlayerPosition(newState);
+                }
+            } else if (x === 'd') {
+                if (newState.fb < 4 && newState.fall[newState.fa][newState.fb] === newState.fan[newState.fa][newState.fb + 1]) {
+                    // 有效移動
+                    const c = newState.fall[newState.fa][newState.fb];
+                    newState.fall[newState.fa][newState.fb] = newState.fall[newState.fa][newState.fb + 1];
+                    newState.fall[newState.fa][newState.fb + 1] = c;
+                    newState.fb = newState.fb + 1;
+                } else {
+                    addOutput('走錯');
+                    resetPlayerPosition(newState);
+                }
+            } else {
+                addOutput('輸入錯誤');
+            }
+            
+            addOutput('');
+            displayMaze(newState.fall);
+            addOutput('');
+            
+            gameState = newState;
+            
+            // 檢查獲勝條件
+            if (newState.fa === 3 && newState.fb === 4) {
+                addOutput('恭喜你走到終點');
+                endGame();
+            } else {
+                showInputPrompt();
+            }
+        }
+
+        // 重置玩家位置
+        function resetPlayerPosition(state) {
+            const c = state.fall[state.fa][state.fb];
+            state.fall[state.fa][state.fb] = state.fall[2][0];
+            state.fall[2][0] = c;
+            state.fa = 2;
+            state.fb = 0;
+        }
+
+        // 結束遊戲
+        function endGame() {
+            isRunning = false;
+            waitingForInput = false;
+            document.getElementById('run-btn').disabled = false;
+            document.getElementById('input-section').style.display = 'none';
+        }
+
+        // 重置遊戲
+        function resetGame() {
+            isRunning = false;
+            waitingForInput = false;
+            gameState = null;
+            
+            clearConsole();
+            addOutput('等待程式執行...');
+            
+            document.getElementById('run-btn').disabled = false;
+            document.getElementById('input-section').style.display = 'none';
+            document.getElementById('waiting-message').style.display = 'block';
+            document.getElementById('user-input').value = '';
+        }
+
+        // 鍵盤事件處理
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && waitingForInput) {
+                submitInput();
+            }
+        });
+
+        // 限制輸入只能是 w, s, d
+        document.getElementById('user-input').addEventListener('input', function(event) {
+            const value = event.target.value.toLowerCase();
+            if (value && !['w', 's', 'd'].includes(value)) {
+                event.target.value = '';
+            }
+        });
+    </script>
+</body>
+</html>
